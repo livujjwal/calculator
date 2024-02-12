@@ -1,23 +1,32 @@
 const express = require("express");
-
+const customMiddleware = require("./middleware/customMiddleware");
+const morgan = require("morgan");
 const app = express();
+app.use(express.json());
+app.use(customMiddleware);
+app.use(morgan());
+app.use(morgan("tiny"));
+app.use(function (req, res, next) {
+  console.log("I am middleware inside app file");
+  next();
+});
 
 const courses = [
   {
     id: 1,
-    title: "JS",
+    name: "JS",
   },
   {
     id: 2,
-    title: "ReactJS",
+    name: "ReactJS",
   },
   {
     id: 3,
-    title: "NodeJS",
+    name: "NodeJS",
   },
   {
     id: 4,
-    title: "CSS",
+    name: "CSS",
   },
 ];
 
@@ -31,9 +40,26 @@ app.get("/about", (req, res) => {
 app.get("/contact", (req, res) => {
   res.send("Contactde page render");
 });
-app.get("/home", (req, res) => {
-  res.send("Home page render");
+app.get("/courses", (req, res) => {
+  res.send(courses);
 });
+app.put("/courses/:coursename", (req, res) => {
+  const course = courses.find(
+    (course) => course.name === req.params.coursename
+  );
+  if (!course) res.status(404).send("Course you search for does not exist");
+  course.name = req.body.name;
+  res.send(course);
+});
+app.post("/courses", (req, res) => {
+  const course = {
+    id: courses.length + 1,
+    name: req.body.name,
+  };
+  courses.push(course);
+  res.send(course);
+});
+
 // app.get("/coures/:id", (req, res) => {
 //   res.send(req.params.id);
 //   //   console.log(req.params);
